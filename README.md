@@ -1,2 +1,2 @@
-# Cloud Native Applications on Oracle Cloud Infrastructure
- Cloud Native Applications on Oracle Cloud Infrastructure, by BPB Publications
+# Oracle-Cloud-Infrastructure
+ Oracle-Cloud-Infrastructure, by BPB Publications

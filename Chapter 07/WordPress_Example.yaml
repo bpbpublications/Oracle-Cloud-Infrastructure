@@ -1,0 +1,140 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wpress
+  labels:
+    app: wpress
+spec:
+  selector:
+    matchLabels:
+      app: wpress
+      tier: frontend
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: wpress
+        tier: frontend
+    spec:
+      containers:
+      - image: wordpress:6.2.1-apache
+        name: wpress
+        env:
+        - name: WORDPRESS_DB_HOST
+          value: wpress-msql
+        - name: WORDPRESS_DB_PASSWORD
+          value: "OCIcnaApps"
+        - name: WORDPRESS_DB_USER
+          value: wpress
+        ports:
+        - containerPort: 80
+          name: wpress
+        volumeMounts:
+        - name: wpress-persistent-storage
+          mountPath: /var/www/html
+      volumes:
+      - name: wpress-persistent-storage
+        persistentVolumeClaim:
+          claimName: wp-pv-claim
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wpress-msql
+  labels:
+    app: wpress
+spec:
+  selector:
+    matchLabels:
+      app: wpress
+      tier: msql
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: wpress
+        tier: msql
+    spec:
+      containers:
+      - image: mysql:8.0
+        name: msql
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: "OCIcnaApps"
+        - name: MYSQL_DATABASE
+          value: wpress
+        - name: MYSQL_USER
+          value: wpress
+        - name: MYSQL_PASSWORD
+          value: "OCIcnaApps"
+        ports:
+        - containerPort: 3306
+          name: msql
+        volumeMounts:
+        - name: msql-persistent-storage
+          mountPath: /var/lib/msql
+      volumes:
+      - name: msql-persistent-storage
+        persistentVolumeClaim:
+          claimName: msql-pv-claim
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wpress-msql
+  labels:
+    app: wpress
+spec:
+  ports:
+    - port: 3306
+  selector:
+    app: wpress
+    tier: msql
+  clusterIP: None
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: msql-pv-claim
+  labels:
+    app: wpress
+spec:
+  storageClassName: "oci-bv"
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wpress
+  labels:
+    app: wpress
+  annotations:
+    oci.oraclecloud.com/load-balancer-type: "lb"
+spec:
+  ports:
+    - port: 80
+  selector:
+    app: wpress
+    tier: frontend
+  type: LoadBalancer
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: wp-pv-claim
+  labels:
+    app: wpress
+spec:
+  storageClassName: "oci-bv"
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+

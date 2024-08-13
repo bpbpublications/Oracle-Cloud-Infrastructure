@@ -1,0 +1,20 @@
+{
+  "routes": [
+    {
+      "path": "/launchers",
+      "methods": ["GET"],
+      "backend": {
+        "type": "HTTP_BACKEND",
+        "url": "https://isro.vercel.app/api/launchers"
+      }
+    },
+    {
+      "path": "/spacecrafts",
+      "methods": ["GET"],
+      "backend": {
+        "type": "HTTP_BACKEND",
+        "url": "https://isro.vercel.app/api/spacecrafts"
+      }
+    }
+  ]
+}
